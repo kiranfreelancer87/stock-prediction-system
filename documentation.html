@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prediction System Documentation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        h1, h2, h3 { color: #333; }
+        code { background: #f4f4f4; padding: 5px; display: block; }
+        pre { background: #f4f4f4; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Stock Prediction System Using DeepSeek-R1</h1>
+    <h2>Overview</h2>
+    <p>The stock prediction system analyzes technical and fundamental data to identify positive stocks using the DeepSeek-R1 model. It processes financial data and integrates live news feeds for enhanced accuracy.</p>
+
+    <h2>Key Features</h2>
+    <ul>
+        <li>Fundamental & Technical Data Analysis</li>
+        <li>Live News Integration</li>
+        <li>Retrieval-Augmented Generation (RAG)</li>
+        <li>Parallelized Embedding Generation</li>
+        <li>ChromaDB for Vector Storage</li>
+        <li>Gradio-Based User Interface</li>
+    </ul>
+
+    <h2>Data Sources</h2>
+    <p>The system processes structured data from multiple categories including:</p>
+    <ul>
+        <li>Overview</li>
+        <li>Performance</li>
+        <li>Valuation</li>
+        <li>Dividends</li>
+        <li>Profitability</li>
+        <li>Income Statement</li>
+        <li>Balance Sheet</li>
+        <li>Cash Flow</li>
+    </ul>
+
+    <h2>Implementation</h2>
+    <h3>1. Data Loading & Preprocessing</h3>
+    <pre><code>from langchain.document_loaders import CSVLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+loader = CSVLoader("csv_files/overview.csv")
+documents = loader.load()
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+chunks = text_splitter.split_documents(documents=documents)</code></pre>
+
+    <h3>2. Embedding Generation</h3>
+    <pre><code>from concurrent.futures import ThreadPoolExecutor
+from langchain_ollama import OllamaEmbeddings
+
+embedding_function = OllamaEmbeddings(model="deepseek-r1:1.5b")
+
+def generate_embedding(chunk):
+    return embedding_function.embed_query(chunk.page_content)
+
+with ThreadPoolExecutor() as executor:
+    embeddings = list(executor.map(generate_embedding, chunks))</code></pre>
+
+    <h3>3. ChromaDB Storage</h3>
+    <pre><code>from chromadb import Client
+from chromadb.config import Settings
+
+client = Client(Settings())
+collection = client.create_collection(name="stock_analysis")
+for idx, chunk in enumerate(chunks):
+    collection.add(
+        documents=[chunk.page_content],
+        metadatas=[{'id': idx}],
+        embeddings=[embeddings[idx]],
+        ids=[str(idx)]
+    )</code></pre>
+
+    <h3>4. Context Retrieval & Model Querying</h3>
+    <pre><code>from langchain_chroma import Chroma
+from langchain_ollama import OllamaLLM
+
+def retrieve_context(question):
+    retriever = Chroma(collection_name="stock_analysis", client=client, embedding_function=embedding_function).as_retriever()
+    results = retriever.invoke(question)
+    return "\n\n".join([doc.page_content for doc in results])
+
+def query_deepseek(question, context):
+    formatted_prompt = f"Question: {question}. Answer from the context only.\n\nContext: {context}."
+    ollama = OllamaLLM(model="deepseek-r1:1.5b")
+    return ollama.invoke(input=formatted_prompt).strip()</code></pre>
+
+    <h3>5. Gradio Interface</h3>
+    <pre><code>import gradio as gr
+
+def ask_question(question):
+    context = retrieve_context(question)
+    return query_deepseek(question, context)
+
+interface = gr.Interface(fn=ask_question, inputs="text", outputs="text",
+                         title="Stock Prediction Chatbot",
+                         description="Ask about stock trends based on fundamental & technical data.")
+interface.launch()</code></pre>
+
+    <h2>Future Enhancements</h2>
+    <ul>
+        <li>Real-time Data Updates</li>
+        <li>Sentiment Analysis</li>
+        <li>Advanced Technical Indicators</li>
+        <li>Multi-Model Support</li>
+    </ul>
+
+    <h2>Conclusion</h2>
+    <p>The system combines structured financial data, real-time news, and DeepSeek-R1 for precise stock predictions, leveraging RAG techniques for enhanced insights.</p>
+</body>
+</html>

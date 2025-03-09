@@ -1,0 +1,8 @@
+name,description,logoid,update_mode,type,typespecs,cash_f_operating_activities_ttm,fundamental_currency_code,cash_f_investing_activities_ttm,cash_f_financing_activities_ttm,free_cash_flow_ttm,capital_expenditures_ttm
+A,"Agilent Technologies, Inc.",agilent-technologies,streaming,stock,common,1697000000,USD,-1257000000,-692000000,1312000000,-385000000
+AA,Alcoa Corporation,alcoa,streaming,stock,common,622000000,USD,-566000000,159000000,42000000,-580000000
+AACT,Ares Acquisition Corporation II,ares-management,streaming,stock,common,-979617,USD,0,-85000,-979620,0
+AADI,"Aadi Bioscience, Inc.",aadi-bioscience,streaming,stock,common,-54141000,USD,15718000,157000,-56425000,-2284000
+AAL,"American Airlines Group, Inc.",american-airlines-group,streaming,stock,common,3983000000,USD,-968000000,-2794000000,1300000000,-2683000000
+AAM,AA Mission Acquisition Corp.,,streaming,stock,common,,USD,,,,
+AAME,Atlantic American Corporation,atlantic-americanrporation,streaming,stock,common,1352000,USD,-2425000,187000,1221000,-131000
